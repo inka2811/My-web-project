@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的收藏夹 - 开屏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --transition-duration: 0.6s;
+            --auto-close-delay: 8000;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
+        }
+
+        .splash-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            z-index: 9999;
+            transition: opacity var(--transition-duration) ease-out, transform var(--transition-duration) ease-out;
+        }
+
+        .splash-container.fade-out {
+            opacity: 0;
+            transform: scale(1.05);
+        }
+
+        .splash-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .splash-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center center;
+            transition: transform var(--transition-duration) ease-out;
+        }
+
+        .splash-container.fade-out .splash-bg img {
+            transform: scale(1.1);
+        }
+
+        .splash-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                180deg,
+                rgba(0, 0, 0, 0.6) 0%,
+                rgba(0, 0, 0, 0.4) 40%,
+                rgba(0, 0, 0, 0.7) 100%
+            );
+        }
+
+        .splash-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            color: white;
+            max-width: 800px;
+            padding: 20px;
+            animation: contentFadeIn 1s ease-out;
+        }
+
+        @keyframes contentFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .splash-title {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            animation: titleFadeIn 1s ease-out;
+        }
+
+        @keyframes titleFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .splash-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            opacity: 0.9;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            animation: subtitleFadeIn 1s ease-out 0.3s both;
+        }
+
+        @keyframes subtitleFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 0.9;
+                transform: translateY(0);
+            }
+        }
+
+        .splash-desc {
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            opacity: 0.8;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            animation: descFadeIn 1s ease-out 0.6s both;
+        }
+
+        @keyframes descFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 0.8;
+                transform: translateY(0);
+            }
+        }
+
+        .splash-scroll-btn {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: btnFadeIn 1s ease-out 0.9s both;
+            backdrop-filter: blur(5px);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .splash-scroll-btn.interactive {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .splash-scroll-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: white;
+            transform: translateY(-3px);
+        }
+
+        @keyframes btnFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 0.6;
+                transform: translateY(0);
+            }
+        }
+
+        .splash-scroll-btn.interactive {
+            animation: btnFadeInActive 1s ease-out 0.9s both;
+        }
+
+        @keyframes btnFadeInActive {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .scroll-arrow {
+            font-size: 1.5rem;
+            animation: bounce 1.5s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(10px);
+            }
+        }
+
+        .countdown-timer {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            animation: fadeIn 1s ease-out 1s both;
+            opacity: 0.5;
+        }
+
+        .countdown-timer.interactive {
+            opacity: 1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 0.5; }
+        }
+
+        .countdown-timer.interactive {
+            animation: fadeInActive 1s ease-out 1s both;
+        }
+
+        @keyframes fadeInActive {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .countdown-circle {
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .countdown-circle::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: conic-gradient(
+                rgba(255, 255, 255, 0.8) 0deg,
+                rgba(255, 255, 255, 0.3) var(--progress)deg,
+                transparent var(--progress)deg
+            );
+            transition: --progress 100ms linear;
+        }
+
+        .countdown-number {
+            position: relative;
+            z-index: 1;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* 加载状态 */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            z-index: 20;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            animation: spin 1.5s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .splash-title {
+                font-size: 2.5rem;
+            }
+
+            .splash-subtitle {
+                font-size: 1.2rem;
+            }
+
+            .splash-desc {
+                font-size: 1rem;
+            }
+
+            .splash-scroll-btn {
+                padding: 12px 24px;
+                font-size: 0.9rem;
+            }
+
+            .countdown-timer {
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .countdown-circle {
+                width: 40px;
+                height: 40px;
+            }
+
+            .countdown-number {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .splash-title {
+                font-size: 1.8rem;
+            }
+
+            .splash-subtitle {
+                font-size: 1rem;
+            }
+
+            .splash-desc {
+                font-size: 0.9rem;
+            }
+
+            .splash-content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 加载覆盖层 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- 开屏容器 -->
+    <div class="splash-container" id="splashContainer">
+        <div class="splash-bg">
+            <img src="img/rewriteBCG.png" alt="开屏大图" id="splashImage">
+        </div>
+        <div class="splash-overlay"></div>
+        
+        <div class="splash-content">
+            <h1 class="splash-title">我的收藏夹</h1>
+            <p class="splash-subtitle">记录生活中的美好瞬间</p>
+            <p class="splash-desc">文学 · 动漫 · 游戏 · 音乐</p>
+            <button class="splash-scroll-btn" id="scrollBtn">
+                <span>向下滚动探索</span>
+                <span class="scroll-arrow">↓</span>
+            </button>
+        </div>
+
+        <div class="countdown-timer" id="countdownTimer">
+            <div class="countdown-circle">
+                <span class="countdown-number" id="countdownNumber">8</span>
+            </div>
+            <span>自动跳过</span>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // 配置参数
+            const CONFIG = {
+                autoCloseDelay: 8000,      // 自动关闭延迟（毫秒）- 改为8秒
+                animationDuration: 600,    // 动画时长（毫秒）
+                scrollThreshold: 50,       // 滚动阈值（像素）
+                localStorageKey: 'hasVisitedHome' // localStorage键名
+            };
+
+            // DOM元素
+            const splashContainer = document.getElementById('splashContainer');
+            const splashImage = document.getElementById('splashImage');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const scrollBtn = document.getElementById('scrollBtn');
+            const countdownNumber = document.getElementById('countdownNumber');
+            const countdownTimer = document.getElementById('countdownTimer');
+
+            // 状态变量
+            let autoCloseTimer = null;
+            let countdownTimerInterval = null;
+            let remainingTime = CONFIG.autoCloseDelay / 1000;  // 8秒
+            let hasInteracted = false;
+            let isTransitioning = false;
+            let isImageLoaded = false;
+            let isInteractive = false;
+
+            /**
+             * 检查是否为首次访问
+             */
+            function checkFirstVisit() {
+                const hasVisited = localStorage.getItem(CONFIG.localStorageKey);
+                if (!hasVisited) {
+                    localStorage.setItem(CONFIG.localStorageKey, 'true');
+                    return true;
+                }
+                return false;
+            }
+
+            /**
+             * 跳转到主页面
+             */
+            function redirectToMain() {
+                if (isTransitioning) return;
+                
+                isTransitioning = true;
+                clearAllTimers();
+                
+                // 添加淡出动画
+                splashContainer.classList.add('fade-out');
+                
+                // 动画完成后跳转
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, CONFIG.animationDuration);
+            }
+
+            /**
+             * 启动自动关闭定时器（仅在图片加载完成后调用）
+             */
+            function startAutoCloseTimer() {
+                if (!isImageLoaded) {
+                    console.warn('Cannot start timer: image not loaded');
+                    return;
+                }
+
+                // 更新倒计时显示
+                countdownTimerInterval = setInterval(() => {
+                    remainingTime--;
+                    if (remainingTime >= 0) {
+                        countdownNumber.textContent = remainingTime;
+                    }
+                    
+                    if (remainingTime <= 0) {
+                        clearInterval(countdownTimerInterval);
+                        redirectToMain();
+                    }
+                }, 1000);
+
+                // 自动关闭定时器 - 使用精确的定时器确保8秒
+                autoCloseTimer = setTimeout(() => {
+                    redirectToMain();
+                }, CONFIG.autoCloseDelay);
+
+                // 标记为可交互状态
+                isInteractive = true;
+                updateInteractiveState();
+            }
+
+            /**
+             * 更新交互状态UI
+             */
+            function updateInteractiveState() {
+                if (isInteractive) {
+                    scrollBtn.classList.add('interactive');
+                    countdownTimer.classList.add('interactive');
+                }
+            }
+
+            /**
+             * 清除所有定时器
+             */
+            function clearAllTimers() {
+                if (autoCloseTimer) {
+                    clearTimeout(autoCloseTimer);
+                    autoCloseTimer = null;
+                }
+                if (countdownTimerInterval) {
+                    clearInterval(countdownTimerInterval);
+                    countdownTimerInterval = null;
+                }
+            }
+
+            /**
+             * 处理用户交互（仅在可交互状态下生效）
+             */
+            function handleUserInteraction() {
+                // 仅在图片加载完成且定时器已启动后才允许交互关闭
+                if (!isInteractive || hasInteracted || isTransitioning) return;
+                
+                hasInteracted = true;
+                redirectToMain();
+            }
+
+            /**
+             * 设置滚轮监听
+             */
+            function setupScrollListener() {
+                let lastScrollY = window.scrollY;
+                
+                const handleScroll = () => {
+                    const currentScrollY = window.scrollY;
+                    const scrollDiff = Math.abs(currentScrollY - lastScrollY);
+                    
+                    if (scrollDiff >= CONFIG.scrollThreshold) {
+                        handleUserInteraction();
+                    }
+                    
+                    lastScrollY = currentScrollY;
+                };
+
+                window.addEventListener('wheel', handleScroll, { once: true, passive: true });
+                window.addEventListener('touchmove', handleScroll, { once: true, passive: true });
+            }
+
+            /**
+             * 设置其他交互监听
+             */
+            function setupInteractionListeners() {
+                // 点击按钮
+                scrollBtn.addEventListener('click', handleUserInteraction);
+                
+                // 点击页面任意位置
+                document.addEventListener('click', handleUserInteraction, { once: true });
+                
+                // 触摸事件
+                document.addEventListener('touchstart', handleUserInteraction, { once: true });
+                
+                // 键盘事件（排除ESC键）
+                document.addEventListener('keydown', (e) => {
+                    if (e.key !== 'Escape') {
+                        handleUserInteraction();
+                    }
+                }, { once: true });
+            }
+
+            /**
+             * 图片加载完成处理
+             */
+            function onImageLoaded() {
+                if (isImageLoaded) return;
+                
+                isImageLoaded = true;
+                
+                // 隐藏加载覆盖层
+                loadingOverlay.classList.add('hidden');
+                
+                // 立即启动8秒定时器（图片加载完成后立即开始计时）
+                startAutoCloseTimer();
+            }
+
+            /**
+             * 初始化函数
+             */
+            function init() {
+                // 检查是否为首次访问
+                const isFirstVisit = checkFirstVisit();
+                
+                if (!isFirstVisit) {
+                    // 非首次访问，直接跳转
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // 设置交互监听（监听会检查isInteractive状态）
+                setupScrollListener();
+                setupInteractionListeners();
+
+                // 预加载图片
+                const img = new Image();
+                img.onload = onImageLoaded;
+                img.onerror = onImageLoaded; // 加载失败也继续
+                img.src = splashImage.src;
+
+                // 设置最大等待时间（防止图片加载超时）
+                setTimeout(() => {
+                    if (!isImageLoaded) {
+                        console.log('Image load timeout, proceeding anyway');
+                        onImageLoaded();
+                    }
+                }, 10000); // 10秒超时
+            }
+
+            // 页面加载完成后初始化
+            document.addEventListener('DOMContentLoaded', init);
+
+            // 页面关闭前清理
+            window.addEventListener('beforeunload', () => {
+                clearAllTimers();
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的收藏夹 - 数据</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- 组件容器 -->
+    <div id="globalNav"></div>
+    <div id="mobileMenu"></div>
+    <div id="musicPlayer"></div>
+    
+    <div class="page-content" id="pageContent">
+        <div id="mainContainer"></div>
+    </div>
+    
+    <div id="toast"></div>
+    <div id="footer"></div>
+    
+    <script src="js/main.js"></script>
+    <script src="js/components/commonComponents.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Components.init();
+            
+            // 渲染全局导航
+            Components.render('global-nav', 'globalNav', { currentPage: 'data' });
+            
+            // 渲染移动端菜单
+            Components.render('mobile-menu', 'mobileMenu', { currentPage: 'data' });
+            
+            // 渲染音乐播放器
+            Components.render('music-player', 'musicPlayer');
+            
+            // 渲染侧边栏（数据页面）
+            const sidebarHtml = Components.Sidebar.render({
+                currentPage: 'data',
+                sectionTitle: '数据可视化',
+                showAddButton: false,
+                showCarousel: true,
+                showRanks: false,
+                customContent: generateDataContent()
+            });
+            document.getElementById('mainContainer').innerHTML = sidebarHtml;
+            
+            // 渲染其他组件
+            Components.render('toast', 'toast');
+            Components.render('footer', 'footer');
+            
+            // 初始化数据页面逻辑
+            initDataPage();
+        });
+        
+        // 生成数据页面内容
+        function generateDataContent() {
+            return `
+                <section class="data-overview">
+                    <div class="data-card">
+                        <div class="data-value" id="total-count">0</div>
+                        <div class="data-label">总作品数</div>
+                    </div>
+                    <div class="data-card">
+                        <div class="data-value" id="fav-count-display">0</div>
+                        <div class="data-label">收藏数</div>
+                    </div>
+                    <div class="data-card">
+                        <div class="data-value" id="category-count">0</div>
+                        <div class="data-label">分类数</div>
+                    </div>
+                    <div class="data-card">
+                        <div class="data-value">5</div>
+                        <div class="data-label">浏览历史</div>
+                    </div>
+                </section>
+
+                <section class="chart-container">
+                    <div class="chart-card">
+                        <h3>作品添加趋势</h3>
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>分类分布</h3>
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>收藏占比</h3>
+                        <canvas id="favChart"></canvas>
+                    </div>
+                </section>
+            `;
+        }
+        
+        // 数据页面初始化
+        function initDataPage() {
+            const games = App?.data?.games || [];
+            const fav = App?.data?.fav || [];
+
+            const totalCount = games.length;
+            const favCount = fav.length;
+            const categoryCount = [...new Set(games.map(g => g.type))].length;
+
+            document.getElementById('total-count').textContent = totalCount;
+            document.getElementById('fav-count-display').textContent = favCount;
+            document.getElementById('category-count').textContent = categoryCount;
+            
+            if (document.getElementById('fav-count')) {
+                document.getElementById('fav-count').textContent = favCount;
+            }
+
+            initCharts(games, fav);
+        }
+
+        function initCharts(games, fav) {
+            const trendCtx = document.getElementById('trendChart')?.getContext('2d');
+            if (trendCtx) {
+                new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                        datasets: [{
+                            label: '作品数量',
+                            data: [0, 1, 2, 3, 4, games.length],
+                            borderColor: '#4ade80',
+                            backgroundColor: 'rgba(74, 222, 128, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        }
+                    }
+                });
+            }
+
+            const categoryData = {};
+            games.forEach(game => {
+                if (!categoryData[game.type]) {
+                    categoryData[game.type] = 0;
+                }
+                categoryData[game.type]++;
+            });
+
+            const categoryLabels = Object.keys(categoryData);
+            const categoryValues = Object.values(categoryData);
+            const colors = ['#4ade80', '#f472b6', '#60a5fa', '#fbbf24', '#a78bfa'];
+
+            const categoryCtx = document.getElementById('categoryChart')?.getContext('2d');
+            if (categoryCtx) {
+                new Chart(categoryCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: categoryLabels.length > 0 ? categoryLabels : ['暂无数据'],
+                        datasets: [{
+                            label: '作品数量',
+                            data: categoryValues.length > 0 ? categoryValues : [0],
+                            backgroundColor: colors.slice(0, categoryLabels.length || 1).map(c => c + 'aa'),
+                            borderColor: colors.slice(0, categoryLabels.length || 1),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            const favCtx = document.getElementById('favChart')?.getContext('2d');
+            if (favCtx) {
+                const favCount = fav.length;
+                const notFavCount = games.length - favCount;
+
+                new Chart(favCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['已收藏', '未收藏'],
+                        datasets: [{
+                            data: [favCount || 1, notFavCount || 1],
+                            backgroundColor: [
+                                'rgba(244, 114, 182, 0.8)',
+                                'rgba(74, 222, 128, 0.8)'
+                            ],
+                            borderColor: [
+                                '#f472b6',
+                                '#4ade80'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

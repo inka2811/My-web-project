@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作品详情 - 我的收藏夹</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .detail-page { max-width: 900px; margin: 0 auto; padding: 30px 20px; }
+        .detail-hero { display: flex; gap: 30px; background: white; border-radius: 16px; padding: 30px; box-shadow: var(--shadow); margin-bottom: 30px; }
+        .detail-hero-cover { width: 280px; height: 350px; border-radius: 12px; overflow: hidden; flex-shrink: 0; position: relative; }
+        .detail-hero-cover img { width: 100%; height: 100%; object-fit: cover; }
+        .cover-badge { position: absolute; top: 12px; left: 12px; padding: 4px 12px; background: rgba(0,0,0,0.7); color: white; border-radius: 20px; font-size: 12px; }
+        .detail-hero-info { flex: 1; display: flex; flex-direction: column; }
+        .detail-hero-title { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
+        .detail-hero-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .detail-meta-tag { padding: 4px 12px; background: var(--primary-light); color: var(--primary-dark); border-radius: 20px; font-size: 13px; font-weight: 500; }
+        .detail-meta-tag.fav-tag { background: #fee; color: #c00; }
+        .detail-meta-tag.type-tag { background: var(--primary); color: white; }
+        .detail-hero-desc { font-size: 15px; line-height: 1.8; color: var(--text-secondary); flex: 1; }
+        .detail-hero-actions { display: flex; gap: 12px; margin-top: 20px; }
+        .detail-section { background: white; border-radius: 16px; padding: 30px; box-shadow: var(--shadow); margin-bottom: 30px; }
+        .detail-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid var(--border-light); }
+        .detail-section-title { font-size: 20px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 10px; margin: 0; }
+        .detail-section-title::before { content: ''; width: 4px; height: 20px; background: var(--primary); border-radius: 2px; }
+        .section-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 5px; }
+        .info-table { width: 100%; border-collapse: collapse; }
+        .info-table tr { border-bottom: 1px solid var(--border-light); }
+        .info-table td { padding: 12px 0; }
+        .info-table td:first-child { width: 100px; color: var(--text-muted); font-weight: 500; }
+        .download-list { display: flex; flex-direction: column; gap: 12px; }
+        .download-item { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: var(--bg); border-radius: 10px; border: 1px solid var(--border-light); transition: var(--transition); }
+        .download-item:hover { border-color: var(--primary); background: var(--primary-light); transform: translateX(4px); }
+        .download-info { display: flex; align-items: center; gap: 12px; }
+        .download-icon { width: 40px; height: 40px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .download-name { font-weight: 500; color: var(--text); margin-bottom: 2px; }
+        .download-size { font-size: 12px; color: var(--text-muted); }
+        .download-btn { padding: 8px 20px; background: var(--primary-dark); color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .download-btn:hover { background: var(--primary); transform: translateY(-2px); }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: white; color: var(--text); border: 1px solid var(--border); border-radius: 8px; font-size: 14px; cursor: pointer; text-decoration: none; margin-bottom: 20px; }
+        .back-btn:hover { background: var(--bg); border-color: var(--primary); }
+        .not-found { text-align: center; padding: 100px 20px; }
+        .add-download-btn { padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; }
+        .edit-download-btn { padding: 6px 12px; background: var(--primary-light); color: var(--primary-dark); border: none; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .delete-download-btn { padding: 6px 12px; background: #fee; color: #c00; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .comment-section { margin-top: 30px; }
+        .comment-form { background: var(--bg); border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid var(--border-light); }
+        .comment-textarea { width: 100%; min-height: 100px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; resize: vertical; box-sizing: border-box; }
+        .comment-textarea:focus { outline: none; border-color: var(--primary); }
+        .comment-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+        .comment-list { display: flex; flex-direction: column; gap: 16px; }
+        .comment-item { background: var(--bg); border-radius: 12px; padding: 20px; border: 1px solid var(--border-light); }
+        .comment-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .comment-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; }
+        .comment-author { font-weight: 600; color: var(--text); font-size: 14px; }
+        .comment-time { font-size: 12px; color: var(--text-muted); }
+        .comment-content { font-size: 14px; line-height: 1.6; color: var(--text-secondary); }
+        .comment-footer { display: flex; gap: 20px; font-size: 12px; }
+        .comment-action { display: flex; align-items: center; gap: 4px; color: var(--text-muted); cursor: pointer; }
+        .comment-action:hover { color: var(--primary); }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; border-radius: 16px; padding: 30px; width: 90%; max-width: 450px; }
+        .modal-title { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 24px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+        .form-group input { width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+        .form-group input:focus { outline: none; border-color: var(--primary); }
+        .modal-buttons { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+        .btn-cancel { padding: 10px 20px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; font-size: 14px; cursor: pointer; }
+        .icon-select { display: flex; flex-wrap: wrap; gap: 8px; }
+        .icon-option { width: 40px; height: 40px; border: 2px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; }
+        .icon-option.selected { border-color: var(--primary); background: var(--primary-light); }
+        @media (max-width: 768px) { .detail-hero { flex-direction: column; align-items: center; text-align: center; } .detail-hero-cover { width: 200px; height: 250px; } .detail-hero-title { font-size: 22px; } }
+    </style>
+</head>
+<body>
+    <div id="globalNav"></div>
+    <div id="mobileMenu"></div>
+    <div id="musicPlayer"></div>
+    
+    <div class="page-content" id="pageContent">
+        <div id="mainContainer"></div>
+    </div>
+    
+    <div id="footer"></div>
+    
+    <script src="js/main.js"></script>
+    <script src="js/components/commonComponents.js"></script>
+    <script>
+        let currentGameId = null;
+        let currentEditIndex = null;
+        let pendingDeleteIndex = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            Components.init();
+            
+            Components.render('global-nav', 'globalNav', { currentPage: 'detail' });
+            Components.render('mobile-menu', 'mobileMenu', { currentPage: 'detail' });
+            Components.render('music-player', 'musicPlayer');
+            Components.render('footer', 'footer');
+
+            const sidebarHtml = Components.Sidebar.render({
+                currentPage: 'detail',
+                showAddButton: false,
+                showCarousel: false,
+                showRanks: false,
+                customContent: '<div id="detailContent" class="detail-page"></div>'
+            });
+            document.getElementById('mainContainer').innerHTML = sidebarHtml;
+
+            initDetailPage();
+        });
+
+        function initDetailPage() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const gameId = parseInt(params.get('id'));
+
+                if (!gameId) {
+                    renderNotFound();
+                    return;
+                }
+
+                currentGameId = gameId;
+                let games = [];
+                let fav = [];
+
+                const savedGames = localStorage.getItem('customGames');
+                const savedFav = localStorage.getItem('fav');
+
+                if (savedGames) {
+                    try { games = JSON.parse(savedGames); } catch (e) { games = []; }
+                }
+                if (savedFav) {
+                    try { fav = JSON.parse(savedFav); } catch (e) { fav = []; }
+                }
+
+                if (games.length === 0) {
+                    games = [
+                        { id: 1, name: "局外人", type: "文学", author: "加缪", desc: "《局外人》是阿尔贝·加缪的代表作之一...", cover: "./img/juwairen.jpg", rating: 4.8, tags: ["存在主义", "哲学", "经典"], downloads: [], comments: [] },
+                        { id: 2, name: "孤独摇滚", type: "动漫", desc: "《孤独摇滚！》是一部以乐队为主题的青春喜剧动画...", cover: "./img/BochiRock.png", rating: 4.9, tags: ["音乐", "喜剧", "青春"], downloads: [], comments: [] },
+                        { id: 3, name: "塞尔达传说", type: "游戏", company: "任天堂", desc: "《塞尔达传说》系列是任天堂发行的经典动作冒险游戏...", cover: "./img/ZelDA.jpg", rating: 4.9, tags: ["开放世界", "冒险", "解谜"], downloads: [], comments: [] },
+                        { id: 4, name: "rewrite", type: "游戏", desc: "《Rewrite》是Key社制作的一款视觉小说游戏...", cover: "./img/rewriteBCG.png", rating: 4.7, tags: ["视觉小说", "科幻", "校园"], downloads: [], comments: [] }
+                    ];
+                    localStorage.setItem('customGames', JSON.stringify(games));
+                }
+
+                const game = games.find(g => g.id === gameId);
+                if (!game) {
+                    renderNotFound();
+                    return;
+                }
+
+                if (document.getElementById('fav-count')) {
+                    document.getElementById('fav-count').textContent = fav.length;
+                }
+
+                renderDetail(game, fav.includes(game.id));
+                bindIconSelectEvents();
+
+            } catch (error) {
+                console.error('页面加载错误:', error);
+                renderError();
+            }
+        }
+
+        function bindIconSelectEvents() {
+            document.querySelectorAll('.icon-option')?.forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+        }
+
+        function renderDetail(game, isFav) {
+            const container = document.getElementById('detailContent');
+            const backUrl = game.type + '.html';
+            const downloads = game.downloads || [];
+            const comments = game.comments || [];
+
+            container.innerHTML = `
+                <a href="${backUrl}" class="back-btn">← 返回${game.type}列表</a>
+                <div class="detail-hero">
+                    <div class="detail-hero-cover">
+                        <img src="${game.cover || './img/aaa.jpg'}" alt="${game.name}" onerror="this.src='./img/aaa.jpg'">
+                        <span class="cover-badge">${game.type}</span>
+                    </div>
+                    <div class="detail-hero-info">
+                        <h1 class="detail-hero-title">${game.name}</h1>
+                        <div class="detail-hero-meta">
+                            <span class="detail-meta-tag type-tag">${game.type}</span>
+                            ${game.author ? `<span class="detail-meta-tag">作者: ${game.author}</span>` : ''}
+                            ${game.company ? `<span class="detail-meta-tag">公司: ${game.company}</span>` : ''}
+                            ${game.rating ? `<span class="detail-meta-tag">⭐ ${game.rating}</span>` : ''}
+                            <span class="detail-meta-tag ${isFav ? 'fav-tag' : ''}">${isFav ? '❤️ 已收藏' : '🤍 未收藏'}</span>
+                        </div>
+                        <div class="detail-hero-desc">${game.desc || '暂无详细描述'}</div>
+                        <div class="detail-hero-actions">
+                            <button class="add-btn" onclick="toggleFav(${game.id})">${isFav ? '❤️ 取消收藏' : '🤍 收藏'}</button>
+                            <button class="btn-cancel" onclick="window.location.href='${backUrl}'">返回列表</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-section">
+                    <h2 class="detail-section-title">作品信息</h2>
+                    <div class="section-subtitle">了解更多关于${game.name}的详细信息</div>
+                    <table class="info-table">
+                        <tr><td>作品名称</td><td>${game.name}</td></tr>
+                        <tr><td>类型</td><td>${game.type}</td></tr>
+                        ${game.author ? `<tr><td>作者</td><td>${game.author}</td></tr>` : ''}
+                        ${game.company ? `<tr><td>公司</td><td>${game.company}</td></tr>` : ''}
+                        ${game.rating ? `<tr><td>评分</td><td>${game.rating} / 5.0</td></tr>` : ''}
+                        <tr><td>标签</td><td>${game.tags?.join('、') || '暂无标签'}</td></tr>
+                        <tr><td>资源数量</td><td>${downloads.length} 个</td></tr>
+                        <tr><td>评论数</td><td>${comments.length} 条</td></tr>
+                    </table>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-header">
+                        <h2 class="detail-section-title">资源下载</h2>
+                        <button class="add-download-btn" onclick="openAddDownloadModal()">+ 添加下载链接</button>
+                    </div>
+                    <div class="section-subtitle">点击下方链接下载相关资源</div>
+                    <div class="download-list" id="downloadList">${generateDownloadList(downloads)}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-section-header"><h2 class="detail-section-title">用户评论</h2></div>
+                    <div class="section-subtitle">分享你的看法，与其他用户交流</div>
+                    <div class="comment-form">
+                        <textarea class="comment-textarea" id="commentTextarea" placeholder="写下你的评论..."></textarea>
+                        <div class="comment-actions">
+                            <button class="btn-cancel" onclick="document.getElementById('commentTextarea').value=''">清空</button>
+                            <button class="add-btn" onclick="submitComment()">发表评论</button>
+                        </div>
+                    </div>
+                    <div class="comment-list" id="commentList">${generateCommentList(comments)}</div>
+                </div>
+                ${generateDownloadModal()}
+                ${generateDeleteModal()}
+            `;
+        }
+
+        function generateDownloadList(downloads) {
+            if (downloads.length === 0) {
+                return `<div class="download-item"><div class="download-info"><div class="download-icon">📦</div><div><div class="download-name">暂无下载资源</div><div class="download-size">点击上方"添加下载链接"按钮添加资源</div></div></div></div>`;
+            }
+            return downloads.map((res, index) => `
+                <div class="download-item">
+                    <div class="download-info"><div class="download-icon">${res.icon || '📦'}</div><div><div class="download-name">${res.name}</div><div class="download-size">${res.size || '大小未知'}</div></div></div>
+                    <div class="download-actions">
+                        <button class="edit-download-btn" onclick="openEditDownloadModal(${index})">编辑</button>
+                        <button class="delete-download-btn" onclick="openDeleteModal(${index})">删除</button>
+                        <a href="${res.url}" class="download-btn" target="_blank">⬇️ 下载</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function generateCommentList(comments) {
+            if (!comments || comments.length === 0) {
+                return `<div style="text-align:center;padding:40px;color:var(--text-muted)"><p>暂无评论，快来发表第一条评论吧！</p></div>`;
+            }
+            return comments.map((comment, index) => `
+                <div class="comment-item">
+                    <div class="comment-header"><div class="comment-avatar">${comment.author?.charAt(0) || '匿'}</div><div><div class="comment-author">${comment.author || '匿名用户'}</div><div class="comment-time">${formatTime(comment.time)}</div></div></div>
+                    <div class="comment-content">${comment.content}</div>
+                    <div class="comment-footer"><span class="comment-action">❤️ ${comment.likes || 0}</span><span class="comment-action">💬 回复</span></div>
+                </div>
+            `).join('');
+        }
+
+        function generateDownloadModal() {
+            return `
+                <div class="modal-overlay" id="downloadModal">
+                    <div class="modal">
+                        <h3 class="modal-title" id="downloadModalTitle">添加下载链接</h3>
+                        <div class="form-group"><label>资源名称</label><input type="text" id="downloadName" placeholder="例如：游戏本体"></div>
+                        <div class="form-group"><label>下载链接</label><input type="url" id="downloadUrl" placeholder="请输入有效的下载链接"></div>
+                        <div class="form-group"><label>资源大小</label><input type="text" id="downloadSize" placeholder="例如：1.5GB"></div>
+                        <div class="form-group"><label>图标</label><div class="icon-select">
+                            <div class="icon-option selected" data-icon="📦">📦</div>
+                            <div class="icon-option" data-icon="📖">📖</div>
+                            <div class="icon-option" data-icon="🎮">🎮</div>
+                            <div class="icon-option" data-icon="🎵">🎵</div>
+                            <div class="icon-option" data-icon="🎬">🎬</div>
+                        </div></div>
+                        <div class="modal-buttons"><button class="btn-cancel" onclick="closeDownloadModal()">取消</button><button class="add-btn" onclick="saveDownload()">保存</button></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateDeleteModal() {
+            return `
+                <div class="modal-overlay" id="deleteModal">
+                    <div class="modal">
+                        <h3 class="modal-title">确认删除</h3>
+                        <p style="color:var(--text-secondary);margin-bottom:20px;">确定要删除这个下载链接吗？</p>
+                        <div class="modal-buttons"><button class="btn-cancel" onclick="closeDeleteModal()">取消</button><button class="add-btn" style="background:#ef4444" onclick="confirmDelete()">删除</button></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleFav(gameId) {
+            let fav = JSON.parse(localStorage.getItem('fav') || '[]');
+            if (fav.includes(gameId)) {
+                fav = fav.filter(id => id !== gameId);
+            } else {
+                fav.push(gameId);
+            }
+            localStorage.setItem('fav', JSON.stringify(fav));
+            location.reload();
+        }
+
+        function openAddDownloadModal() {
+            currentEditIndex = null;
+            document.getElementById('downloadModalTitle').textContent = '添加下载链接';
+            document.getElementById('downloadName').value = '';
+            document.getElementById('downloadUrl').value = '';
+            document.getElementById('downloadSize').value = '';
+            document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
+            document.querySelector('.icon-option:first-child').classList.add('selected');
+            document.getElementById('downloadModal').classList.add('active');
+        }
+
+        function openEditDownloadModal(index) {
+            currentEditIndex = index;
+            const games = JSON.parse(localStorage.getItem('customGames') || '[]');
+            const game = games.find(g => g.id === currentGameId);
+            const download = game?.downloads?.[index];
+            if (download) {
+                document.getElementById('downloadModalTitle').textContent = '编辑下载链接';
+                document.getElementById('downloadName').value = download.name || '';
+                document.getElementById('downloadUrl').value = download.url || '';
+                document.getElementById('downloadSize').value = download.size || '';
+                document.querySelectorAll('.icon-option').forEach(o => o.classList.remove('selected'));
+                const iconOption = document.querySelector(`.icon-option[data-icon="${download.icon}"]`) || document.querySelector('.icon-option:first-child');
+                iconOption.classList.add('selected');
+                document.getElementById('downloadModal').classList.add('active');
+            }
+        }
+
+        function closeDownloadModal() {
+            document.getElementById('downloadModal').classList.remove('active');
+        }
+
+        function saveDownload() {
+            const name = document.getElementById('downloadName').value;
+            const url = document.getElementById('downloadUrl').value;
+            if (!name || !url) {
+                alert('请填写资源名称和下载链接');
+                return;
+            }
+            const size = document.getElementById('downloadSize').value;
+            const icon = document.querySelector('.icon-option.selected')?.dataset.icon || '📦';
+            
+            const games = JSON.parse(localStorage.getItem('customGames') || '[]');
+            const gameIndex = games.findIndex(g => g.id === currentGameId);
+            if (gameIndex !== -1) {
+                if (!games[gameIndex].downloads) games[gameIndex].downloads = [];
+                if (currentEditIndex !== null) {
+                    games[gameIndex].downloads[currentEditIndex] = { name, url, size, icon };
+                } else {
+                    games[gameIndex].downloads.push({ name, url, size, icon });
+                }
+                localStorage.setItem('customGames', JSON.stringify(games));
+                closeDownloadModal();
+                location.reload();
+            }
+        }
+
+        function openDeleteModal(index) {
+            pendingDeleteIndex = index;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+        }
+
+        function confirmDelete() {
+            if (pendingDeleteIndex === null) return;
+            const games = JSON.parse(localStorage.getItem('customGames') || '[]');
+            const gameIndex = games.findIndex(g => g.id === currentGameId);
+            if (gameIndex !== -1 && games[gameIndex].downloads) {
+                games[gameIndex].downloads.splice(pendingDeleteIndex, 1);
+                localStorage.setItem('customGames', JSON.stringify(games));
+                closeDeleteModal();
+                location.reload();
+            }
+        }
+
+        function submitComment() {
+            const content = document.getElementById('commentTextarea').value.trim();
+            if (!content) {
+                alert('请输入评论内容');
+                return;
+            }
+            const games = JSON.parse(localStorage.getItem('customGames') || '[]');
+            const gameIndex = games.findIndex(g => g.id === currentGameId);
+            if (gameIndex !== -1) {
+                if (!games[gameIndex].comments) games[gameIndex].comments = [];
+                games[gameIndex].comments.push({
+                    author: '游客用户',
+                    content,
+                    time: Date.now(),
+                    likes: 0
+                });
+                localStorage.setItem('customGames', JSON.stringify(games));
+                document.getElementById('commentTextarea').value = '';
+                location.reload();
+            }
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function renderNotFound() {
+            document.getElementById('detailContent').innerHTML = `<div class="not-found"><h2>作品未找到</h2><p>抱歉，您访问的作品不存在或已被删除</p><button class="add-btn" onclick="window.location.href='index.html'">返回首页</button></div>`;
+        }
+
+        function renderError() {
+            document.getElementById('detailContent').innerHTML = `<div class="not-found"><h2>加载失败</h2><p>页面加载出现错误，请稍后重试</p></div>`;
+        }
+    </script>
+</body>
+</html>

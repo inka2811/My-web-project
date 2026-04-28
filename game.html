@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的收藏夹 - 游戏</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="globalNav"></div>
+    <div id="mobileMenu"></div>
+    <div id="musicPlayer"></div>
+
+    <div class="page-content" id="pageContent">
+        <div id="mainContainer"></div>
+    </div>
+
+    <div id="cardModal"></div>
+    <div id="deleteModal"></div>
+    <div id="toast"></div>
+    <div id="footer"></div>
+
+    <script src="js/main.js"></script>
+    <script src="js/components/commonComponents.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Components.init();
+
+            Components.render('global-nav', 'globalNav', { currentPage: 'game' });
+            Components.render('mobile-menu', 'mobileMenu', { currentPage: 'game' });
+            Components.render('music-player', 'musicPlayer');
+
+            const sidebarHtml = Components.Sidebar.render({
+                currentPage: 'game',
+                sectionTitle: '游戏',
+                showAddButton: true,
+                showCarousel: true,
+                showRanks: false
+            });
+            document.getElementById('mainContainer').innerHTML = sidebarHtml;
+
+            Components.render('modal', 'cardModal');
+            Components.render('delete-modal', 'deleteModal');
+            Components.render('toast', 'toast');
+            Components.render('footer', 'footer');
+        });
+    </script>
+</body>
+</html>

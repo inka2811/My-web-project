@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的收藏夹 - 首页</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script>
+        // 检查是否为首次访问，若是则重定向到开屏页面
+        (function() {
+            const hasVisited = localStorage.getItem('hasVisitedHome');
+            if (!hasVisited) {
+                localStorage.setItem('hasVisitedHome', 'true');
+                window.location.href = 'splash.html';
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- 组件容器 -->
+    <div id="globalNav"></div>
+    <div id="mobileMenu"></div>
+    <div id="musicPlayer"></div>
+    
+    <div class="page-content" id="pageContent">
+        <div id="mainContainer"></div>
+    </div>
+    
+    <div id="cardModal"></div>
+    <div id="deleteModal"></div>
+    <div id="toast"></div>
+    <div id="footer"></div>
+    
+    <script src="js/main.js"></script>
+    <script src="js/components/commonComponents.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Components.init();
+            
+            // 渲染全局导航
+            Components.render('global-nav', 'globalNav', { currentPage: 'index' });
+            
+            // 渲染移动端菜单
+            Components.render('mobile-menu', 'mobileMenu', { currentPage: 'index' });
+            
+            // 渲染音乐播放器
+            Components.render('music-player', 'musicPlayer');
+            
+            // 渲染侧边栏（首页显示排行榜）
+            const sidebarHtml = Components.Sidebar.render({
+                currentPage: 'index',
+                sectionTitle: '全部收藏作品',
+                showAddButton: true,
+                showCarousel: true,
+                showRanks: true
+            });
+            document.getElementById('mainContainer').innerHTML = sidebarHtml;
+            
+            // 渲染其他组件
+            Components.render('modal', 'cardModal');
+            Components.render('delete-modal', 'deleteModal');
+            Components.render('toast', 'toast');
+            Components.render('footer', 'footer');
+        });
+    </script>
+</body>
+</html>
